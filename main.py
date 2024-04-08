@@ -118,7 +118,7 @@ class SmartMirror(tk.Tk):
             self.display_weather_icons(data["daily"])
 
             if self.debug:
-                print(f"Feels like: {current_temperature}°C")
+                print(f"Weather: {current_temperature}°C")
 
         else:
             self.weather = "Unable to get weather information"
