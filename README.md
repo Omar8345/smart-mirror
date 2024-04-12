@@ -1,3 +1,6 @@
+## Font used
+- [Raleway](https://fonts.google.com/specimen/Raleway)
+
 ## Required Environment Variables
 
 - `DEBUG` (bool): Enable debug mode. Default: `False`
