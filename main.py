@@ -7,6 +7,9 @@ import requests
 import geocoder
 import time
 import json
+from gnews import GNews
+import textwrap
+from decouple import config
 
 
 # The SmartMirror class for the main application.
@@ -14,7 +17,9 @@ class SmartMirror(tk.Tk):
     def __init__(self) -> None:
         tk.Tk.__init__(self)
 
-        self.debug = True
+        self.debug = config("DEBUG", default=False, cast=bool)
+        self.name = config("USERNAME", default="User", cast=str) + "!"
+
         self.attributes("-fullscreen", True)
         self.configure(background="black")
         self.wm_attributes("-alpha", 0.9)  # Adjust transparency for a modern look
@@ -27,6 +32,7 @@ class SmartMirror(tk.Tk):
         self.latitude = geocoder.ip("me").latlng[0]
         self.longitude = geocoder.ip("me").latlng[1]
         self.city = geocoder.ip("me").city
+        self.country = geocoder.ip("me").country
         self.news = ""
         self.create_widgets()
         self.update_clock()
@@ -41,14 +47,28 @@ class SmartMirror(tk.Tk):
         self.canvas = tk.Canvas(self, bg="black", highlightthickness=0)
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
-        time_label_font = font.Font(family="Helvetica Neue", size=72, weight="bold")
+        now = time.localtime()
+        current_hour = int(time.strftime("%H", now))
+        if current_hour < 12:
+            greeting = "Good morning"
+        elif current_hour < 18:
+            greeting = "Good afternoon"
+        else:
+            greeting = "Good evening"
+        self.greeting_label = tk.Label(
+            self.canvas, font=("Raleway", 60), fg="white", bg="black"
+        )
+        self.greeting_label.pack(side="top", anchor="nw", padx=50, pady=50)
+        self.greeting_label.config(text=f"{greeting}, {self.name}")
+
+        time_label_font = font.Font(family="Raleway", size=40, weight="bold")
         self.time_label = tk.Label(
             self.canvas, font=time_label_font, fg="white", bg="black"
         )
-        self.time_label.pack(side="top", anchor="nw", padx=50, pady=50)
+        self.time_label.pack(side="top", anchor="nw", padx=50)
 
         self.date_label = tk.Label(
-            self.canvas, font=("Helvetica Neue", 36), fg="white", bg="black"
+            self.canvas, font=("Raleway", 25), fg="white", bg="black"
         )
         self.date_label.pack(side="top", anchor="nw", padx=50)
 
@@ -59,12 +79,12 @@ class SmartMirror(tk.Tk):
         self.weather_icon_label.pack(side="left", padx=10)
 
         self.weather_temp_label = tk.Label(
-            self.weather_frame, font=("Helvetica Neue", 24), fg="white", bg="black"
+            self.weather_frame, font=("Raleway", 24), fg="white", bg="black"
         )
         self.weather_temp_label.pack(side="left")
 
         self.weather_desc_label = tk.Label(
-            self.weather_frame, font=("Helvetica Neue", 24), fg="white", bg="black"
+            self.weather_frame, font=("Raleway", 24), fg="white", bg="black"
         )
         self.weather_desc_label.pack(side="left", padx=(0, 10))
 
@@ -73,10 +93,11 @@ class SmartMirror(tk.Tk):
 
         self.news_label = tk.Label(
             self.canvas,
-            font=("Helvetica Neue", 22),
+            font=("Raleway", 22),
             fg="white",
             bg="black",
-            wraplength=1000,
+            wraplength=1200,
+            justify="left",
         )
         self.news_label.pack(side="top", anchor="nw", padx=50)
 
@@ -179,7 +200,7 @@ class SmartMirror(tk.Tk):
             temp_label = tk.Label(
                 self.weather_table_frame,
                 text=f"{round(avg_temperature)}°C",
-                font=("Helvetica Neue", 12),
+                font=("Raleway", 12),
                 fg="white",
                 bg="black",
             )
@@ -228,12 +249,20 @@ class SmartMirror(tk.Tk):
         Fetches the latest news using an API.
         """
 
-        self.news = "News: A new study finds that people who sleep longer live longer"
+        if self.debug:
+            text = "A kid in Alaska chews on gummy bears as his daily snack. - CNN"
+        else:
+            gnews = GNews()
+            text = gnews.get_news_by_location(self.country)[0]['title']
+
+        texts = textwrap.wrap(text, width=35)
+        text = '\n'.join(texts)
+
+        self.news = "News: " + text
         self.news_label.config(text=self.news)
         self.after(60000, self.update_news)
 
 
 # Create an instance of SmartMirror
 app = SmartMirror()
-# Start the application loop
 app.mainloop()
