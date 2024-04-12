@@ -253,7 +253,11 @@ class SmartMirror(tk.Tk):
             text = "A kid in Alaska chews on gummy bears as his daily snack. - CNN"
         else:
             gnews = GNews()
-            text = gnews.get_news_by_location(self.country)[0]['title']
+
+            if self.city:
+                text = gnews.get_news_by_location(self.city)[0]['title']
+            elif self.country:
+                text = gnews.get_news_by_location(self.country)[0]['title']
 
         texts = textwrap.wrap(text, width=35)
         text = '\n'.join(texts)
