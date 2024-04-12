@@ -1,7 +1,7 @@
 ## Font used
 - [Raleway](https://fonts.google.com/specimen/Raleway)
 
-## Required Environment Variables
+## Required environment variables
 
 - `DEBUG` (bool): Enable debug mode. Default: `False`
 - `USERNAME` (str): Username for the Smart Mirror. Default: `User`
