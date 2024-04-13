@@ -96,22 +96,23 @@ class SmartMirror(tk.Tk):
         self.weather_icon_label.pack(side="left", padx=10)
 
         self.weather_temp_label = tk.Label(
-            self.weather_frame, font=("Raleway", 24), fg="white", bg="black"
+            self.weather_frame, font=font.Font(family="Raleway", size=30, weight="bold"), fg="white", bg="black"
         )
         self.weather_temp_label.pack(side="left")
 
         self.weather_desc_label = tk.Label(
-            self.weather_frame, font=("Raleway", 24), fg="white", bg="black"
+            self.weather_frame, font=("Raleway", 30), fg="white", bg="black"
         )
-        self.weather_desc_label.pack(side="left", padx=(0, 10))
+        self.weather_desc_label.pack(side="right")
 
         self.weather_table_frame = tk.Frame(self.canvas, bg="black")
-        self.weather_table_frame.pack(side="top", anchor="ne", padx=50, pady=50)
+        self.weather_table_frame.pack(side="right", anchor="ne", padx=50, pady=50)
+        self.weather_table_frame.grid_columnconfigure(2, weight=2)
 
         self.news_label_publisher = tk.Label(
-            self.canvas, font=("Raleway", 18), fg="gray", bg="black", justify="center"
+            self.canvas, font=("Raleway", 18), fg="gray", bg="black", justify="left"
         )
-        self.news_label_publisher.pack(side="bottom", anchor="n", padx=50, pady=30)
+        self.news_label_publisher.pack(side="bottom", anchor="nw", padx=50, pady=50)
         self.news_label_publisher.config(text=" ~ ")
 
         self.news_label = tk.Label(
@@ -120,9 +121,9 @@ class SmartMirror(tk.Tk):
             fg="white",
             bg="black",
             wraplength=500,
-            justify="center",
+            justify="left",
         )
-        self.news_label.pack(side="bottom", anchor="n", padx=50)
+        self.news_label.pack(side="bottom", anchor="nw", padx=50)
         self.news_label.config(text="Loading news...")
 
     def update_clock(self) -> None:
@@ -234,17 +235,28 @@ class SmartMirror(tk.Tk):
             icon_url = self.get_icon_url(icon_code)
 
             icon_label = tk.Label(self.weather_table_frame, bg="black")
-            icon_label.grid(row=0, column=i, padx=(0, 10))
+            icon_label.grid(row=i, column=0, padx=(0, 10))
             self.load_weather_icon(icon_url, icon_label)
-
             temp_label = tk.Label(
                 self.weather_table_frame,
                 text=f"{round(avg_temperature)}°C",
-                font=("Raleway", 12),
+                font=font.Font(family="Raleway", size=16, weight="bold"),
                 fg="white",
                 bg="black",
+                anchor="w"
             )
-            temp_label.grid(row=1, column=i, pady=(5, 0))
+            temp_label.grid(row=i, column=1, padx=(0, 10), sticky="w")  # Use sticky="e" to align the label to the right
+
+            day = time.strftime('%A', time.localtime(time.time() + (i + 1) * 86400))
+            day_label = tk.Label(
+                self.weather_table_frame,
+                text=f"{day}",
+                font=font.Font(family="Raleway", size=16),
+                fg="gray",
+                bg="black",
+                anchor="e"
+            )
+            day_label.grid(row=i, column=2, pady=(5, 0), sticky="e")
 
     def load_weather_icon(self, icon_url: str, label: tk.Label):
         """
@@ -290,7 +302,7 @@ class SmartMirror(tk.Tk):
         """
 
         if self.debug:
-            headline = {"title": "A kid in Alaska chews on gummy bears as his daily snack.", "source": "CNN"}
+            headline = {"title": "A kid in Alaska chews on gummy bears as his daily snack.", "publisher": {"title": "CNN"}}
         else:
             gnews = GNews()
             country_name = self.get_country_name(self.country).replace(" ", "%20")
