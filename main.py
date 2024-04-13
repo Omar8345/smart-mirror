@@ -226,6 +226,15 @@ class SmartMirror(tk.Tk):
         Display weather icons in the table for the next 6 days
         """
 
+        opacity_hex = [
+            "#FFFFFF",
+            "#E6E6E6",
+            "#CCCCCC",
+            "#B3B3B3",
+            "#999999",
+            "#808080"
+        ]
+
         for i, day_data in enumerate(
             daily_data["weather_code"][1:7]
         ):  # Skip the first day (today)
@@ -239,12 +248,12 @@ class SmartMirror(tk.Tk):
 
             icon_label = tk.Label(self.weather_table_frame, bg="black")
             icon_label.grid(row=i, column=0, padx=(0, 10))
-            self.load_weather_icon(icon_url, icon_label)
+            self.load_weather_icon(icon_url, icon_label, i)
             temp_label = tk.Label(
                 self.weather_table_frame,
                 text=f"{round(avg_temperature)}°C",
                 font=font.Font(family="Raleway", size=16, weight="bold"),
-                fg="white",
+                fg=opacity_hex[i],
                 bg="black",
                 anchor="w"
             )
@@ -255,16 +264,25 @@ class SmartMirror(tk.Tk):
                 self.weather_table_frame,
                 text=f"{day}",
                 font=font.Font(family="Raleway", size=16),
-                fg="gray",
+                fg=opacity_hex[i],
                 bg="black",
                 anchor="e"
             )
             day_label.grid(row=i, column=2, pady=(5, 0), sticky="e")
 
-    def load_weather_icon(self, icon_url: str, label: tk.Label):
+    def load_weather_icon(self, icon_url: str, label: tk.Label, index: int):
         """
         Load weather icon from URL and display it in the given label
         """
+
+        opacity_alpha = [
+            255,
+            230,
+            210,
+            190,
+            180,
+            128
+        ]
 
         try:
             response = requests.get(icon_url)
@@ -273,6 +291,7 @@ class SmartMirror(tk.Tk):
             if response.status_code == 200:
                 img = Image.open(BytesIO(response.content))
                 img = img.resize((50, 50), Image.LANCZOS)
+                img.putalpha(opacity_alpha[index])
                 img = ImageTk.PhotoImage(img)
                 label.config(image=img)
                 label.image = img
