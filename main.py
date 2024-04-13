@@ -8,13 +8,18 @@ import geocoder
 import time
 import json
 from gnews import GNews
-import textwrap
 from decouple import config
+import pycountry
+import threading
 
 
 # The SmartMirror class for the main application.
 class SmartMirror(tk.Tk):
     def __init__(self) -> None:
+        """
+        Initialize the Smart Mirror application
+        """
+        
         tk.Tk.__init__(self)
 
         self.debug = config("DEBUG", default=False, cast=bool)
@@ -26,6 +31,7 @@ class SmartMirror(tk.Tk):
         self.wm_attributes("-topmost", True)
         self.title("Smart Mirror")
         self.time = ""
+        self.time_seconds = ""
         self.date = ""
         self.weather = ""
         self.weather_icon_url = ""
@@ -36,8 +42,10 @@ class SmartMirror(tk.Tk):
         self.news = ""
         self.create_widgets()
         self.update_clock()
-        self.update_weather()
-        self.update_news()
+
+        # Start separate threads for weather and news updates
+        threading.Thread(target=self.update_weather).start()
+        threading.Thread(target=self.update_news).start()
 
     def create_widgets(self) -> None:
         """
@@ -49,28 +57,37 @@ class SmartMirror(tk.Tk):
 
         now = time.localtime()
         current_hour = int(time.strftime("%H", now))
+
         if current_hour < 12:
             greeting = "Good morning"
         elif current_hour < 18:
             greeting = "Good afternoon"
         else:
             greeting = "Good evening"
+
         self.greeting_label = tk.Label(
-            self.canvas, font=("Raleway", 60), fg="white", bg="black"
+            self.canvas, font=("Raleway", 55), fg="white", bg="black"
         )
         self.greeting_label.pack(side="top", anchor="nw", padx=50, pady=50)
         self.greeting_label.config(text=f"{greeting}, {self.name}")
 
-        time_label_font = font.Font(family="Raleway", size=40, weight="bold")
+        time_label_font = font.Font(family="Raleway", size=55, weight="bold")
         self.time_label = tk.Label(
             self.canvas, font=time_label_font, fg="white", bg="black"
         )
         self.time_label.pack(side="top", anchor="nw", padx=50)
 
+        seconds_label_font = font.Font(family="Raleway", size=35, weight="bold")
+        self.seconds_label = tk.Label(
+            self.canvas, font=seconds_label_font, fg="gray", bg="black"
+        )
+        self.seconds_label.pack(side="top", anchor="nw", padx=50)
+        self.seconds_label.place(x=195, y=183)
+
         self.date_label = tk.Label(
             self.canvas, font=("Raleway", 25), fg="white", bg="black"
         )
-        self.date_label.pack(side="top", anchor="nw", padx=50)
+        self.date_label.pack(side="top", anchor="nw", padx=50, pady=(0, 20))
 
         self.weather_frame = tk.Frame(self.canvas, bg="black")
         self.weather_frame.pack(side="top", anchor="ne", padx=50, pady=50)
@@ -89,17 +106,24 @@ class SmartMirror(tk.Tk):
         self.weather_desc_label.pack(side="left", padx=(0, 10))
 
         self.weather_table_frame = tk.Frame(self.canvas, bg="black")
-        self.weather_table_frame.pack(side="top", anchor="ne", padx=50, pady=(0, 20))
+        self.weather_table_frame.pack(side="top", anchor="ne", padx=50, pady=50)
+
+        self.news_label_publisher = tk.Label(
+            self.canvas, font=("Raleway", 18), fg="gray", bg="black", justify="center"
+        )
+        self.news_label_publisher.pack(side="bottom", anchor="n", padx=50, pady=30)
+        self.news_label_publisher.config(text=" ~ ")
 
         self.news_label = tk.Label(
             self.canvas,
-            font=("Raleway", 22),
+            font=("Raleway", 20),
             fg="white",
             bg="black",
-            wraplength=1200,
-            justify="left",
+            wraplength=500,
+            justify="center",
         )
-        self.news_label.pack(side="top", anchor="nw", padx=50)
+        self.news_label.pack(side="bottom", anchor="n", padx=50)
+        self.news_label.config(text="Loading news...")
 
     def update_clock(self) -> None:
         """
@@ -107,12 +131,25 @@ class SmartMirror(tk.Tk):
         """
 
         now = time.localtime()
-        self.time = time.strftime("%I:%M %p", now)
+        self.time = time.strftime("%H:%M", now)
+        self.time_seconds = time.strftime("%S", now)
         self.date = time.strftime("%A, %B %d", now)
         self.time_label.config(text=self.time)
+        self.seconds_label.config(text=self.time_seconds)
         self.date_label.config(text=self.date)
         self.after(1000, self.update_clock)
+    
+    def get_country_name(self, country_code: str) -> str:
+        """
+        Get the country name from the country code
+        """
 
+        try:
+            country = pycountry.countries.get(alpha_2=country_code)
+            return country.name
+        except AttributeError:
+            return "Country not found"
+        
     def update_weather(self) -> None:
         """
         Updates the weather information
@@ -125,6 +162,9 @@ class SmartMirror(tk.Tk):
             "current": "temperature_2m,is_day,weather_code",
         }
         res = requests.get("https://api.open-meteo.com/v1/forecast", params=query)
+        
+        if self.debug:
+            print(res.content)
 
         if res.ok:
             data = res.json()
@@ -148,9 +188,9 @@ class SmartMirror(tk.Tk):
                 print(res.json())
 
             self.weather_temp_label.config(text=self.weather)
-            self.after(60000, self.update_weather)
+            self.after(3600000, self.update_weather)
 
-        self.after(60000, self.update_weather)
+        self.after(3600000, self.update_weather)
 
     def get_weather_data(self, weather_code: int, is_day: bool) -> dict:
         """
@@ -250,21 +290,20 @@ class SmartMirror(tk.Tk):
         """
 
         if self.debug:
-            text = "A kid in Alaska chews on gummy bears as his daily snack. - CNN"
+            headline = {"title": "A kid in Alaska chews on gummy bears as his daily snack.", "source": "CNN"}
         else:
             gnews = GNews()
+            country_name = self.get_country_name(self.country).replace(" ", "%20")
+            headline = gnews.get_news_by_location(country_name)[0]
 
-            if self.city:
-                text = gnews.get_news_by_location(self.city)[0]['title']
-            elif self.country:
-                text = gnews.get_news_by_location(self.country)[0]['title']
+        title = headline['title']
+        publisher = headline['publisher']['title']
+        title = title.removesuffix(" - " + publisher)
 
-        texts = textwrap.wrap(text, width=35)
-        text = '\n'.join(texts)
+        self.news_label.config(text=title)
+        self.news_label_publisher.config(text=" - " + publisher)
+        self.after(43200000, self.update_news)
 
-        self.news = "News: " + text
-        self.news_label.config(text=self.news)
-        self.after(60000, self.update_news)
 
 
 # Create an instance of SmartMirror

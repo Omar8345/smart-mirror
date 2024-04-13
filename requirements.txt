@@ -11,6 +11,7 @@ geocoder==1.38.1
 gnews==0.3.6
 idna==3.6
 pillow==10.3.0
+pycountry==23.12.11
 pymongo==3.12.3
 python-decouple==3.8
 python-dotenv==0.19.2
