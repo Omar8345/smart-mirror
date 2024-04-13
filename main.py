@@ -105,6 +105,9 @@ class SmartMirror(tk.Tk):
         )
         self.weather_desc_label.pack(side="right")
 
+        self.line = tk.Frame(self.canvas, bg="gray", height=2, width=100)
+        self.line.pack(side="top", anchor="e", padx=50, pady=5)
+
         self.weather_table_frame = tk.Frame(self.canvas, bg="black")
         self.weather_table_frame.pack(side="right", anchor="ne", padx=50, pady=50)
         self.weather_table_frame.grid_columnconfigure(2, weight=2)
