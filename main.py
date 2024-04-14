@@ -71,18 +71,18 @@ class SmartMirror(tk.Tk):
         self.greeting_label.pack(side="top", anchor="nw", padx=50, pady=50)
         self.greeting_label.config(text=f"{greeting}, {self.name}")
 
-        time_label_font = font.Font(family="Raleway", size=55, weight="bold")
+        time_label_font = font.Font(family="Raleway", size=60, weight="bold")
         self.time_label = tk.Label(
             self.canvas, font=time_label_font, fg="white", bg="black"
         )
         self.time_label.pack(side="top", anchor="nw", padx=50)
 
-        seconds_label_font = font.Font(family="Raleway", size=35, weight="bold")
+        seconds_label_font = font.Font(family="Raleway", size=30, weight="bold")
         self.seconds_label = tk.Label(
             self.canvas, font=seconds_label_font, fg="gray", bg="black"
         )
         self.seconds_label.pack(side="top", anchor="nw", padx=50)
-        self.seconds_label.place(x=195, y=183)
+        self.seconds_label.place(x=205, y=183)
 
         self.date_label = tk.Label(
             self.canvas, font=("Raleway", 25), fg="white", bg="black"
@@ -95,21 +95,27 @@ class SmartMirror(tk.Tk):
         self.weather_icon_label = tk.Label(self.weather_frame, bg="black")
         self.weather_icon_label.pack(side="left", padx=10)
 
+        self.weather_info_frame = tk.Frame(self.canvas, bg="black")
+        self.weather_info_frame.pack(side="top", anchor="ne", padx=50, pady=5)
+        self.weather_info_frame.grid_columnconfigure(0, weight=1)
+        self.weather_main_icon_label = tk.Label(self.weather_info_frame, bg="black")
+        self.weather_main_icon_label.grid(row=0, column=0, padx=(0, 10))
+
         self.weather_temp_label = tk.Label(
-            self.weather_frame, font=font.Font(family="Raleway", size=30, weight="bold"), fg="white", bg="black"
+            self.weather_info_frame, font=font.Font(family="Raleway", size=30, weight="bold"), fg="white", bg="black"
         )
-        self.weather_temp_label.pack(side="left")
+        self.weather_temp_label.grid(row=0, column=1, padx=(0, 10))
 
         self.weather_desc_label = tk.Label(
-            self.weather_frame, font=("Raleway", 30), fg="white", bg="black"
+            self.weather_info_frame, font=("Raleway", 30), fg="white", bg="black"
         )
-        self.weather_desc_label.pack(side="right")
+        self.weather_desc_label.grid(row=0, column=2)
 
         self.weather_line = tk.Frame(self.canvas, bg="gray", height=2, width=150)
         self.weather_line.pack(side="top", anchor="e", padx=50, pady=5)
 
         self.weather_table_frame = tk.Frame(self.canvas, bg="black")
-        self.weather_table_frame.pack(side="right", anchor="ne", padx=50, pady=50)
+        self.weather_table_frame.pack(side="right", anchor="ne", padx=50, pady=20)
         self.weather_table_frame.grid_columnconfigure(2, weight=2)
 
         self.news_label_publisher = tk.Label(
@@ -178,6 +184,7 @@ class SmartMirror(tk.Tk):
 
             weather_data = self.get_weather_data(weather_code, is_day)
             self.weather_icon_url = weather_data["icon"]
+
             self.weather_temp_label.config(text=f"{current_temperature}°C")
             self.weather_desc_label.config(text=weather_data["description"])
             self.display_weather_icons(data["daily"])
@@ -235,6 +242,11 @@ class SmartMirror(tk.Tk):
             "#808080"
         ]
 
+        main_weather_code = daily_data["weather_code"][0]
+        main_weather_icon_url = self.get_icon_url(main_weather_code)
+
+        self.load_weather_icon(main_weather_icon_url, self.weather_main_icon_label)
+
         for i, day_data in enumerate(
             daily_data["weather_code"][1:7]
         ):  # Skip the first day (today)
@@ -248,7 +260,7 @@ class SmartMirror(tk.Tk):
 
             icon_label = tk.Label(self.weather_table_frame, bg="black")
             icon_label.grid(row=i, column=0, padx=(0, 10))
-            self.load_weather_icon(icon_url, icon_label, i)
+            self.load_weather_icon(icon_url, icon_label)
             temp_label = tk.Label(
                 self.weather_table_frame,
                 text=f"{round(avg_temperature)}°C",
@@ -270,19 +282,10 @@ class SmartMirror(tk.Tk):
             )
             day_label.grid(row=i, column=2, pady=(5, 0), sticky="e")
 
-    def load_weather_icon(self, icon_url: str, label: tk.Label, index: int):
+    def load_weather_icon(self, icon_url: str, label: tk.Label):
         """
         Load weather icon from URL and display it in the given label
         """
-
-        opacity_alpha = [
-            255,
-            230,
-            210,
-            190,
-            180,
-            128
-        ]
 
         try:
             response = requests.get(icon_url)
@@ -291,7 +294,6 @@ class SmartMirror(tk.Tk):
             if response.status_code == 200:
                 img = Image.open(BytesIO(response.content))
                 img = img.resize((50, 50), Image.LANCZOS)
-                img.putalpha(opacity_alpha[index])
                 img = ImageTk.PhotoImage(img)
                 label.config(image=img)
                 label.image = img
