@@ -1,5 +1,5 @@
 ## Font used
-- [Raleway](https://fonts.google.com/specimen/Raleway)
+- Futura (macOS-tested)
 
 ## Required environment variables
 

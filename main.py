@@ -66,26 +66,26 @@ class SmartMirror(tk.Tk):
             greeting = "Good evening"
 
         self.greeting_label = tk.Label(
-            self.canvas, font=("Raleway", 55), fg="white", bg="black"
+            self.canvas, font=("Futura", 55), fg="white", bg="black"
         )
         self.greeting_label.pack(side="top", anchor="nw", padx=50, pady=50)
         self.greeting_label.config(text=f"{greeting}, {self.name}")
 
-        time_label_font = font.Font(family="Raleway", size=60, weight="bold")
+        time_label_font = font.Font(family="Futura", size=60, weight="bold")
         self.time_label = tk.Label(
             self.canvas, font=time_label_font, fg="white", bg="black"
         )
         self.time_label.pack(side="top", anchor="nw", padx=50)
 
-        seconds_label_font = font.Font(family="Raleway", size=30, weight="bold")
+        seconds_label_font = font.Font(family="Futura", size=30, weight="bold")
         self.seconds_label = tk.Label(
             self.canvas, font=seconds_label_font, fg="gray", bg="black"
         )
         self.seconds_label.pack(side="top", anchor="nw", padx=50)
-        self.seconds_label.place(x=205, y=183)
+        self.seconds_label.place(x=235, y=186)
 
         self.date_label = tk.Label(
-            self.canvas, font=("Raleway", 25), fg="white", bg="black"
+            self.canvas, font=("Futura", 25), fg="white", bg="black"
         )
         self.date_label.pack(side="top", anchor="nw", padx=50, pady=(0, 20))
 
@@ -102,12 +102,12 @@ class SmartMirror(tk.Tk):
         self.weather_main_icon_label.grid(row=0, column=0, padx=(0, 10))
 
         self.weather_temp_label = tk.Label(
-            self.weather_info_frame, font=font.Font(family="Raleway", size=30, weight="bold"), fg="white", bg="black"
+            self.weather_info_frame, font=font.Font(family="Futura", size=30, weight="bold"), fg="white", bg="black"
         )
         self.weather_temp_label.grid(row=0, column=1, padx=(0, 10))
 
         self.weather_desc_label = tk.Label(
-            self.weather_info_frame, font=("Raleway", 30), fg="white", bg="black"
+            self.weather_info_frame, font=("Futura", 30), fg="white", bg="black"
         )
         self.weather_desc_label.grid(row=0, column=2)
 
@@ -119,14 +119,14 @@ class SmartMirror(tk.Tk):
         self.weather_table_frame.grid_columnconfigure(2, weight=2)
 
         self.news_label_publisher = tk.Label(
-            self.canvas, font=("Raleway", 18), fg="gray", bg="black", justify="left"
+            self.canvas, font=("Futura", 18), fg="gray", bg="black", justify="left"
         )
         self.news_label_publisher.pack(side="bottom", anchor="nw", padx=50, pady=50)
         self.news_label_publisher.config(text=" ~ ")
 
         self.news_label = tk.Label(
             self.canvas,
-            font=("Raleway", 20),
+            font=("Futura", 20),
             fg="white",
             bg="black",
             wraplength=500,
@@ -264,7 +264,7 @@ class SmartMirror(tk.Tk):
             temp_label = tk.Label(
                 self.weather_table_frame,
                 text=f"{round(avg_temperature)}°C",
-                font=font.Font(family="Raleway", size=16, weight="bold"),
+                font=font.Font(family="Futura", size=16, weight="bold"),
                 fg=opacity_hex[i],
                 bg="black",
                 anchor="w"
@@ -275,7 +275,7 @@ class SmartMirror(tk.Tk):
             day_label = tk.Label(
                 self.weather_table_frame,
                 text=f"{day}",
-                font=font.Font(family="Raleway", size=16),
+                font=font.Font(family="Futura", size=16),
                 fg=opacity_hex[i],
                 bg="black",
                 anchor="e"
