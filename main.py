@@ -11,7 +11,9 @@ from gnews import GNews
 from decouple import config
 import pycountry
 import threading
+import logging
 
+logging.getLogger("geocoder").setLevel(logging.CRITICAL) # Disable geocoder logging
 
 # The SmartMirror class for the main application.
 class SmartMirror(tk.Tk):
