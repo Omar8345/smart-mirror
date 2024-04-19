@@ -264,7 +264,7 @@ class SmartMirror(tk.Tk):
             temp_label = tk.Label(
                 self.weather_table_frame,
                 text=f"{round(avg_temperature)}°C",
-                font=font.Font(family="Futura", size=16, weight="bold"),
+                font=font.Font(family="Futura", size=21, weight="bold"),
                 fg=opacity_hex[i],
                 bg="black",
                 anchor="w"
@@ -275,7 +275,7 @@ class SmartMirror(tk.Tk):
             day_label = tk.Label(
                 self.weather_table_frame,
                 text=f"{day}",
-                font=font.Font(family="Futura", size=16),
+                font=font.Font(family="Futura", size=21),
                 fg=opacity_hex[i],
                 bg="black",
                 anchor="e"
@@ -293,7 +293,7 @@ class SmartMirror(tk.Tk):
 
             if response.status_code == 200:
                 img = Image.open(BytesIO(response.content))
-                img = img.resize((50, 50), Image.LANCZOS)
+                img = img.resize((55, 55), Image.LANCZOS)
                 img = ImageTk.PhotoImage(img)
                 label.config(image=img)
                 label.image = img
