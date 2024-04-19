@@ -82,7 +82,7 @@ class SmartMirror(tk.Tk):
             self.canvas, font=seconds_label_font, fg="gray", bg="black"
         )
         self.seconds_label.pack(side="top", anchor="nw", padx=50)
-        self.seconds_label.place(x=300, y=195)
+        self.seconds_label.place(x=315, y=195)
 
         self.date_label = tk.Label(
             self.canvas, font=("Futura", 25), fg="white", bg="black"
@@ -129,7 +129,7 @@ class SmartMirror(tk.Tk):
             font=("Futura", 30),
             fg="white",
             bg="black",
-            wraplength=500,
+            wraplength=520,
             justify="left",
         )
         self.news_label.pack(side="bottom", anchor="nw", padx=50)
