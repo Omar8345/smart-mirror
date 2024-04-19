@@ -82,7 +82,7 @@ class SmartMirror(tk.Tk):
             self.canvas, font=seconds_label_font, fg="gray", bg="black"
         )
         self.seconds_label.pack(side="top", anchor="nw", padx=50)
-        self.seconds_label.place(x=255, y=190)
+        self.seconds_label.place(x=300, y=195)
 
         self.date_label = tk.Label(
             self.canvas, font=("Futura", 25), fg="white", bg="black"
@@ -102,12 +102,12 @@ class SmartMirror(tk.Tk):
         self.weather_main_icon_label.grid(row=0, column=0, padx=(0, 10))
 
         self.weather_temp_label = tk.Label(
-            self.weather_info_frame, font=font.Font(family="Futura", size=30, weight="bold"), fg="white", bg="black"
+            self.weather_info_frame, font=font.Font(family="Futura", size=35, weight="bold"), fg="white", bg="black"
         )
         self.weather_temp_label.grid(row=0, column=1, padx=(0, 10), pady=10)
 
         self.weather_desc_label = tk.Label(
-            self.weather_info_frame, font=("Futura", 30), fg="white", bg="black"
+            self.weather_info_frame, font=("Futura", 35), fg="white", bg="black"
         )
         self.weather_desc_label.grid(row=0, column=2)
 
@@ -119,14 +119,14 @@ class SmartMirror(tk.Tk):
         self.weather_table_frame.grid_columnconfigure(2, weight=2)
 
         self.news_label_publisher = tk.Label(
-            self.canvas, font=("Futura", 18), fg="gray", bg="black", justify="left"
+            self.canvas, font=("Futura", 23), fg="gray", bg="black", justify="left"
         )
         self.news_label_publisher.pack(side="bottom", anchor="nw", padx=50, pady=50)
         self.news_label_publisher.config(text=" ~ ")
 
         self.news_label = tk.Label(
             self.canvas,
-            font=("Futura", 20),
+            font=("Futura", 30),
             fg="white",
             bg="black",
             wraplength=500,
