@@ -61,11 +61,11 @@ class SmartMirror(tk.Tk):
         current_hour = int(time.strftime("%H", now))
 
         if current_hour < 12:
-            greeting = "Good morning"
+            greeting = "Good Morning"
         elif current_hour < 18:
-            greeting = "Good afternoon"
+            greeting = "Good Afternoon"
         else:
-            greeting = "Good evening"
+            greeting = "Good Evening"
 
         self.greeting_label = tk.Label(
             self.canvas, font=("Futura", 55), fg="white", bg="black"
