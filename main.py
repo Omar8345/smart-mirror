@@ -27,7 +27,7 @@ class SmartMirror(tk.Tk):
         self.debug = config("DEBUG", default=False, cast=bool)
         self.name = config("USERNAME", default="User", cast=str) + "!"
 
-        self.attributes("-fullscreen", True)
+        self.after(1000, lambda: self.wm_attributes('-fullscreen', 'true')) # Enable fullscreen after a delay to avoid issues
         self.configure(background="black")
         self.wm_attributes("-alpha", 0.9)  # Adjust transparency for a modern look
         self.wm_attributes("-topmost", True)
