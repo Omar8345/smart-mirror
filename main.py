@@ -1,14 +1,16 @@
 # Imports.
 from io import BytesIO
-import tkinter as tk
 from tkinter import font
 from PIL import Image, ImageTk
-import requests
-import geocoder
-import time
-import json
 from gnews import GNews
 from decouple import config
+import tkinter as tk
+import requests
+import geocoder
+import os
+import subprocess
+import time
+import json
 import pycountry
 import threading
 import logging
@@ -27,9 +29,10 @@ class SmartMirror(tk.Tk):
         self.debug = config("DEBUG", default=False, cast=bool)
         self.name = config("USERNAME", default="User", cast=str) + "!"
 
-        self.after(1000, lambda: self.wm_attributes('-fullscreen', True)) # Enable fullscreen after a delay to avoid issues
+        self.update()
+        self.wm_attributes("-fullscreen", True)
+        self.config(cursor="none")
         self.configure(background="black")
-        self.wm_attributes("-alpha", 0.9)  # Adjust transparency for a modern look
         self.wm_attributes("-topmost", True)
         self.title("Smart Mirror")
         self.time = ""
@@ -45,9 +48,10 @@ class SmartMirror(tk.Tk):
         self.create_widgets()
         self.update_clock()
 
-        # Start separate threads for weather and news updates
+        # Start separate threads for weather, news, and Google Assistant
         threading.Thread(target=self.update_weather).start()
         threading.Thread(target=self.update_news).start()
+        threading.Thread(target=self.run_google_assistant).start()
 
     def create_widgets(self) -> None:
         """
@@ -161,6 +165,28 @@ class SmartMirror(tk.Tk):
             return country.name
         except AttributeError:
             return "Country not found"
+    
+    def run_google_assistant(self) -> None:
+        """
+        Run the Google Assistant
+        """
+        
+        project_path = os.path.dirname(os.path.realpath(__file__))
+        
+        venv_path = os.path.join(project_path, 'venv')
+        if not os.path.isdir(venv_path):
+            print("Virtual environment not found. Google Assistant will not be available.")
+            return
+
+        activate_command = f"source {venv_path}/bin/activate"
+        subprocess.Popen(activate_command, shell=True)
+
+        assistant_command = f"googlesamples-assistant-pushtotalk >/dev/null 2>&1"
+        assistant_process = subprocess.Popen(assistant_command, shell=True, stdin=subprocess.PIPE)
+
+        while True:
+            assistant_process.stdin.write(b"\n")
+            assistant_process.stdin.flush()
         
     def update_weather(self) -> None:
         """
