@@ -4,16 +4,23 @@ from tkinter import font
 from PIL import Image, ImageTk
 from gnews import GNews
 from decouple import config
+from googlesamples.assistant.grpc.pushtotalk import SampleAssistant
+from googlesamples.assistant.grpc import audio_helpers
+from pydub import AudioSegment
+import simpleaudio as sa
+import speech_recognition as sr
 import tkinter as tk
 import requests
 import geocoder
 import os
-import subprocess
 import time
 import json
 import pycountry
 import threading
 import logging
+import google.auth.transport.grpc
+import google.auth.transport.requests
+import google.oauth2.credentials
 
 logging.getLogger("geocoder").setLevel(logging.CRITICAL) # Disable geocoder logging
 
@@ -28,7 +35,13 @@ class SmartMirror(tk.Tk):
 
         self.debug = config("DEBUG", default=False, cast=bool)
         self.name = config("USERNAME", default="User", cast=str) + "!"
+        self.enable_assistant = config("ENABLE_ASSISTANT", default=True, cast=bool)
+        self.credentials_path = config("CREDENTIALS_PATH", default=None, cast=str)
+        self.assistant_trigger = config("ASSISTANT_TRIGGER", default=True, cast=bool)
 
+        if self.credentials_path == "None":
+            self.credentials_path = None
+        
         self.update()
         self.wm_attributes("-fullscreen", True)
         self.config(cursor="none")
@@ -170,23 +183,84 @@ class SmartMirror(tk.Tk):
         """
         Run the Google Assistant
         """
-        
-        project_path = os.path.dirname(os.path.realpath(__file__))
-        
-        venv_path = os.path.join(project_path, 'venv')
-        if not os.path.isdir(venv_path):
-            print("Virtual environment not found. Google Assistant will not be available.")
+
+        if not self.enable_assistant:
             return
 
-        activate_command = f"source {venv_path}/bin/activate"
-        subprocess.Popen(activate_command, shell=True)
+        if self.credentials_path is None:
+            self.credentials_path = os.path.join(
+                os.path.expanduser('~'),
+                '.config',
+                'google-oauthlib-tool',
+                'credentials.json'
+            )
+        
+        try:
+            with open(self.credentials_path, 'r') as f:
+                credentials = google.oauth2.credentials.Credentials(token=None,
+                                                                    **json.load(f))
+                http_request = google.auth.transport.requests.Request()
+                credentials.refresh(http_request)
+        except Exception as e:
+            logging.error('Error loading credentials: %s', e)
+            logging.error('Run google-oauthlib-tool to initialize '
+                        'new OAuth 2.0 credentials.')
+            return
 
-        assistant_command = f"googlesamples-assistant-pushtotalk >/dev/null 2>&1"
-        assistant_process = subprocess.Popen(assistant_command, shell=True, stdin=subprocess.PIPE)
+        grpc_channel = google.auth.transport.grpc.secure_authorized_channel(
+            credentials, http_request, 'embeddedassistant.googleapis.com')
+        logging.info('Connecting to embeddedassistant.googleapis.com')
+        
+        audio_device = None
+        audio_source = audio_device = (
+            audio_device or audio_helpers.SoundDeviceStream(
+                sample_rate=audio_helpers.DEFAULT_AUDIO_SAMPLE_RATE,
+                sample_width=audio_helpers.DEFAULT_AUDIO_SAMPLE_WIDTH,
+                block_size=audio_helpers.DEFAULT_AUDIO_DEVICE_BLOCK_SIZE,
+                flush_size=audio_helpers.DEFAULT_AUDIO_DEVICE_FLUSH_SIZE
+            )
+        )
 
-        while True:
-            assistant_process.stdin.write(b"\n")
-            assistant_process.stdin.flush()
+        audio_sink = audio_device = (
+            audio_device or audio_helpers.SoundDeviceStream(
+                sample_rate=audio_helpers.DEFAULT_AUDIO_SAMPLE_RATE,
+                sample_width=audio_helpers.DEFAULT_AUDIO_SAMPLE_WIDTH,
+                block_size=audio_helpers.DEFAULT_AUDIO_DEVICE_BLOCK_SIZE,
+                flush_size=audio_helpers.DEFAULT_AUDIO_DEVICE_FLUSH_SIZE
+            )
+        )
+
+        conversation_stream = audio_helpers.ConversationStream(
+            source=audio_source,
+            sink=audio_sink,
+            iter_size=audio_helpers.DEFAULT_AUDIO_ITER_SIZE,
+            sample_width=audio_helpers.DEFAULT_AUDIO_SAMPLE_WIDTH,
+        )
+
+        with SampleAssistant(conversation_stream, grpc_channel, 185) as assistant:
+            while True:
+                if not self.assistant_trigger:
+                    assistant.converse()
+                    continue
+
+                try:
+                    recognizer = sr.Recognizer()
+                    with sr.Microphone() as source:
+                        recognizer.adjust_for_ambient_noise(source)
+                        audio = recognizer.listen(source, timeout=None)
+
+                    command = recognizer.recognize_google(audio)
+                    if any(keyword in command.lower() for keyword in ["hey google", "ok google"]):
+                        audio = AudioSegment.from_file("./resources/trigger_confirmation.mp3", format="mp3")
+                        raw_audio_data = audio.raw_data
+                        play_obj = sa.play_buffer(raw_audio_data, num_channels=audio.channels, bytes_per_sample=audio.sample_width, sample_rate=audio.frame_rate)
+                        play_obj.wait_done()
+                        conversation = assistant.converse()
+                        logging.info(conversation)
+                except sr.UnknownValueError:
+                    logging.error("Sorry, I couldn't understand the audio.")
+                except sr.RequestError as e:
+                    logging.error("Sorry, an error occurred. {0}".format(e))
         
     def update_weather(self) -> None:
         """
@@ -202,7 +276,7 @@ class SmartMirror(tk.Tk):
         res = requests.get("https://api.open-meteo.com/v1/forecast", params=query)
         
         if self.debug:
-            print(res.content)
+            logging.info(res.content)
 
         if res.ok:
             data = res.json()
@@ -218,13 +292,13 @@ class SmartMirror(tk.Tk):
             self.display_weather_icons(data["daily"])
 
             if self.debug:
-                print(f"Weather: {current_temperature}°C")
+                logging.info(f"Weather: {current_temperature}°C")
 
         else:
             self.weather = "Unable to get weather information"
             if self.debug:
-                print("Unable to get weather information")
-                print(res.json())
+                logging.info("Unable to get weather information")
+                logging.info(res.json())
 
             self.weather_temp_label.config(text=self.weather)
             self.after(3600000, self.update_weather)
@@ -253,7 +327,7 @@ class SmartMirror(tk.Tk):
                 "icon": weather_data[weather_code_str][time_of_day]["image"],
             }
         else:
-            print(f"Invalid weather code: {weather_code_str}")
+            logging.info(f"Invalid weather code: {weather_code_str}")
             return {"description": "Unknown", "icon": ""}
 
     def display_weather_icons(self, daily_data: dict) -> None:
@@ -326,11 +400,11 @@ class SmartMirror(tk.Tk):
                 label.config(image=img)
                 label.image = img
             else:
-                print(
+                logging.error(
                     f"Failed to load weather icon from URL: {icon_url}. HTTP status code: {response.status_code}"
                 )
         except requests.exceptions.RequestException as e:
-            print(f"Error loading weather icon from URL: {icon_url}. Exception: {e}")
+            logging.error(f"Error loading weather icon from URL: {icon_url}. Exception: {e}")
 
     def get_icon_url(self, icon_code: int) -> str:
         """
@@ -345,7 +419,7 @@ class SmartMirror(tk.Tk):
         if icon_code_str in weather_data:
             return weather_data[icon_code_str]["day"]["image"]
         else:
-            print(f"Invalid weather code: {icon_code_str}")
+            logging.error(f"Invalid weather code: {icon_code_str}")
             return ""
 
     def update_news(self) -> None:
@@ -367,8 +441,6 @@ class SmartMirror(tk.Tk):
         self.news_label.config(text=title)
         self.news_label_publisher.config(text=" - " + publisher)
         self.after(43200000, self.update_news)
-
-
 
 # Create an instance of SmartMirror
 app = SmartMirror()

@@ -4,7 +4,7 @@ cachetools==5.3.3
 certifi==2024.2.2
 cffi==1.16.0
 charset-normalizer==3.3.2
-click==6.7
+click==8.1.7
 decorator==5.1.1
 dnspython==1.16.0
 feedparser==6.0.11
@@ -24,8 +24,10 @@ pillow==10.3.0
 protobuf==3.20.0
 pyasn1==0.6.0
 pyasn1_modules==0.4.0
+PyAudio==0.2.14
 pycountry==23.12.11
 pycparser==2.22
+pydub==0.25.1
 pymongo==3.12.3
 python-decouple==3.8
 python-dotenv==0.19.2
@@ -34,8 +36,11 @@ requests==2.31.0
 requests-oauthlib==2.0.0
 rsa==4.9
 sgmllib3k==1.0.0
+simpleaudio==1.0.4
 six==1.16.0
 sounddevice==0.3.7
 soupsieve==2.5
+SpeechRecognition==3.10.3
 tenacity==8.2.3
+typing_extensions==4.11.0
 urllib3==2.2.1

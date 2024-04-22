@@ -1,10 +1,13 @@
 ## Font used
-- Futura (macOS-tested)
+- Futura
 
 ## Required environment variables
 
 - `DEBUG` (bool): Enable debug mode. Default: `False`
 - `USERNAME` (str): Username for the Smart Mirror. Default: `User`
+- `ENABLE_ASSISTANT` (bool): Enable Google Assistant. Default: `True`
+- `CREDENTIALS_PATH` (str): Path to the Google Assistant credentials file. Default: `~/.config/google-oauthlib-tool/credentials.json`
+- `ASSISTANT_TRIGGER` (bool): Enable Google Assistant trigger word. Default: `True`
 
 ## Configuration
 
