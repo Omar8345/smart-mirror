@@ -22,7 +22,8 @@ import google.auth.transport.grpc
 import google.auth.transport.requests
 import google.oauth2.credentials
 
-logging.getLogger("geocoder").setLevel(logging.CRITICAL) # Disable geocoder logging
+logging.getLogger("geocoder").setLevel(logging.CRITICAL)  # Disable geocoder logging
+
 
 # The SmartMirror class for the main application.
 class SmartMirror(tk.Tk):
@@ -30,7 +31,7 @@ class SmartMirror(tk.Tk):
         """
         Initialize the Smart Mirror application
         """
-        
+
         tk.Tk.__init__(self)
 
         self.debug = config("DEBUG", default=False, cast=bool)
@@ -41,7 +42,7 @@ class SmartMirror(tk.Tk):
 
         if self.credentials_path == "None":
             self.credentials_path = None
-        
+
         self.update()
         self.wm_attributes("-fullscreen", True)
         self.config(cursor="none")
@@ -121,7 +122,10 @@ class SmartMirror(tk.Tk):
         self.weather_main_icon_label.grid(row=0, column=0, padx=(0, 10))
 
         self.weather_temp_label = tk.Label(
-            self.weather_info_frame, font=font.Font(family="Futura", size=35, weight="bold"), fg="white", bg="black"
+            self.weather_info_frame,
+            font=font.Font(family="Futura", size=35, weight="bold"),
+            fg="white",
+            bg="black",
         )
         self.weather_temp_label.grid(row=0, column=1, padx=(0, 10), pady=10)
 
@@ -167,7 +171,7 @@ class SmartMirror(tk.Tk):
         self.seconds_label.config(text=self.time_seconds)
         self.date_label.config(text=self.date)
         self.after(1000, self.update_clock)
-    
+
     def get_country_name(self, country_code: str) -> str:
         """
         Get the country name from the country code
@@ -178,7 +182,7 @@ class SmartMirror(tk.Tk):
             return country.name
         except AttributeError:
             return "Country not found"
-    
+
     def run_google_assistant(self) -> None:
         """
         Run the Google Assistant
@@ -189,45 +193,44 @@ class SmartMirror(tk.Tk):
 
         if self.credentials_path is None:
             self.credentials_path = os.path.join(
-                os.path.expanduser('~'),
-                '.config',
-                'google-oauthlib-tool',
-                'credentials.json'
+                os.path.expanduser("~"),
+                ".config",
+                "google-oauthlib-tool",
+                "credentials.json",
             )
-        
+
         try:
-            with open(self.credentials_path, 'r') as f:
-                credentials = google.oauth2.credentials.Credentials(token=None,
-                                                                    **json.load(f))
+            with open(self.credentials_path, "r") as f:
+                credentials = google.oauth2.credentials.Credentials(
+                    token=None, **json.load(f)
+                )
                 http_request = google.auth.transport.requests.Request()
                 credentials.refresh(http_request)
         except Exception as e:
-            logging.error('Error loading credentials: %s', e)
-            logging.error('Run google-oauthlib-tool to initialize '
-                        'new OAuth 2.0 credentials.')
+            logging.error("Error loading credentials: %s", e)
+            logging.error(
+                "Run google-oauthlib-tool to initialize " "new OAuth 2.0 credentials."
+            )
             return
 
         grpc_channel = google.auth.transport.grpc.secure_authorized_channel(
-            credentials, http_request, 'embeddedassistant.googleapis.com')
-        logging.info('Connecting to embeddedassistant.googleapis.com')
-        
+            credentials, http_request, "embeddedassistant.googleapis.com"
+        )
+        logging.info("Connecting to embeddedassistant.googleapis.com")
+
         audio_device = None
-        audio_source = audio_device = (
-            audio_device or audio_helpers.SoundDeviceStream(
-                sample_rate=audio_helpers.DEFAULT_AUDIO_SAMPLE_RATE,
-                sample_width=audio_helpers.DEFAULT_AUDIO_SAMPLE_WIDTH,
-                block_size=audio_helpers.DEFAULT_AUDIO_DEVICE_BLOCK_SIZE,
-                flush_size=audio_helpers.DEFAULT_AUDIO_DEVICE_FLUSH_SIZE
-            )
+        audio_source = audio_device = audio_device or audio_helpers.SoundDeviceStream(
+            sample_rate=audio_helpers.DEFAULT_AUDIO_SAMPLE_RATE,
+            sample_width=audio_helpers.DEFAULT_AUDIO_SAMPLE_WIDTH,
+            block_size=audio_helpers.DEFAULT_AUDIO_DEVICE_BLOCK_SIZE,
+            flush_size=audio_helpers.DEFAULT_AUDIO_DEVICE_FLUSH_SIZE,
         )
 
-        audio_sink = audio_device = (
-            audio_device or audio_helpers.SoundDeviceStream(
-                sample_rate=audio_helpers.DEFAULT_AUDIO_SAMPLE_RATE,
-                sample_width=audio_helpers.DEFAULT_AUDIO_SAMPLE_WIDTH,
-                block_size=audio_helpers.DEFAULT_AUDIO_DEVICE_BLOCK_SIZE,
-                flush_size=audio_helpers.DEFAULT_AUDIO_DEVICE_FLUSH_SIZE
-            )
+        audio_sink = audio_device = audio_device or audio_helpers.SoundDeviceStream(
+            sample_rate=audio_helpers.DEFAULT_AUDIO_SAMPLE_RATE,
+            sample_width=audio_helpers.DEFAULT_AUDIO_SAMPLE_WIDTH,
+            block_size=audio_helpers.DEFAULT_AUDIO_DEVICE_BLOCK_SIZE,
+            flush_size=audio_helpers.DEFAULT_AUDIO_DEVICE_FLUSH_SIZE,
         )
 
         conversation_stream = audio_helpers.ConversationStream(
@@ -250,18 +253,30 @@ class SmartMirror(tk.Tk):
                         audio = recognizer.listen(source, timeout=None)
 
                     command = recognizer.recognize_google(audio)
-                    if any(keyword in command.lower() for keyword in ["hey google", "ok google"]):
-                        audio = AudioSegment.from_file("./resources/trigger_confirmation.mp3", format="mp3")
+                    if any(
+                        keyword in command.lower()
+                        for keyword in ["hey google", "ok google"]
+                    ):
+                        audio = AudioSegment.from_file(
+                            "./resources/trigger_confirmation.mp3", format="mp3"
+                        )
                         raw_audio_data = audio.raw_data
-                        play_obj = sa.play_buffer(raw_audio_data, num_channels=audio.channels, bytes_per_sample=audio.sample_width, sample_rate=audio.frame_rate)
+                        play_obj = sa.play_buffer(
+                            raw_audio_data,
+                            num_channels=audio.channels,
+                            bytes_per_sample=audio.sample_width,
+                            sample_rate=audio.frame_rate,
+                        )
                         play_obj.wait_done()
                         conversation = assistant.converse()
                         logging.info(conversation)
+
                 except sr.UnknownValueError:
                     logging.error("Sorry, I couldn't understand the audio.")
+
                 except sr.RequestError as e:
                     logging.error("Sorry, an error occurred. {0}".format(e))
-        
+
     def update_weather(self) -> None:
         """
         Updates the weather information
@@ -274,7 +289,7 @@ class SmartMirror(tk.Tk):
             "current": "temperature_2m,is_day,weather_code",
         }
         res = requests.get("https://api.open-meteo.com/v1/forecast", params=query)
-        
+
         if self.debug:
             logging.info(res.content)
 
@@ -317,7 +332,7 @@ class SmartMirror(tk.Tk):
 
         time_of_day = "night"
         if is_day:
-            time_of_day = "day"            
+            time_of_day = "day"
 
         if weather_code_str in weather_data:
             return {
@@ -335,14 +350,7 @@ class SmartMirror(tk.Tk):
         Display weather icons in the table for the next 6 days
         """
 
-        opacity_hex = [
-            "#FFFFFF",
-            "#E6E6E6",
-            "#CCCCCC",
-            "#B3B3B3",
-            "#999999",
-            "#808080"
-        ]
+        opacity_hex = ["#FFFFFF", "#E6E6E6", "#CCCCCC", "#B3B3B3", "#999999", "#808080"]
 
         main_weather_code = daily_data["weather_code"][0]
         main_weather_icon_url = self.get_icon_url(main_weather_code)
@@ -369,18 +377,20 @@ class SmartMirror(tk.Tk):
                 font=font.Font(family="Futura", size=21, weight="bold"),
                 fg=opacity_hex[i],
                 bg="black",
-                anchor="w"
+                anchor="w",
             )
-            temp_label.grid(row=i, column=1, padx=(0, 10), sticky="w")  # Use sticky="e" to align the label to the right
+            temp_label.grid(
+                row=i, column=1, padx=(0, 10), sticky="w"
+            )  # Use sticky="e" to align the label to the right
 
-            day = time.strftime('%A', time.localtime(time.time() + (i + 1) * 86400))
+            day = time.strftime("%A", time.localtime(time.time() + (i + 1) * 86400))
             day_label = tk.Label(
                 self.weather_table_frame,
                 text=f"{day}",
                 font=font.Font(family="Futura", size=21),
                 fg=opacity_hex[i],
                 bg="black",
-                anchor="e"
+                anchor="e",
             )
             day_label.grid(row=i, column=2, pady=(5, 0), sticky="e")
 
@@ -404,7 +414,9 @@ class SmartMirror(tk.Tk):
                     f"Failed to load weather icon from URL: {icon_url}. HTTP status code: {response.status_code}"
                 )
         except requests.exceptions.RequestException as e:
-            logging.error(f"Error loading weather icon from URL: {icon_url}. Exception: {e}")
+            logging.error(
+                f"Error loading weather icon from URL: {icon_url}. Exception: {e}"
+            )
 
     def get_icon_url(self, icon_code: int) -> str:
         """
@@ -428,19 +440,23 @@ class SmartMirror(tk.Tk):
         """
 
         if self.debug:
-            headline = {"title": "A kid in Alaska chews on gummy bears as his daily snack.", "publisher": {"title": "CNN"}}
+            headline = {
+                "title": "A kid in Alaska chews on gummy bears as his daily snack.",
+                "publisher": {"title": "CNN"},
+            }
         else:
             gnews = GNews()
             country_name = self.get_country_name(self.country).replace(" ", "%20")
             headline = gnews.get_news_by_location(country_name)[0]
 
-        title = headline['title']
-        publisher = headline['publisher']['title']
+        title = headline["title"]
+        publisher = headline["publisher"]["title"]
         title = title.removesuffix(" - " + publisher)
 
         self.news_label.config(text=title)
         self.news_label_publisher.config(text=" - " + publisher)
         self.after(43200000, self.update_news)
+
 
 # Create an instance of SmartMirror
 app = SmartMirror()
