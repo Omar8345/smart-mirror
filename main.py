@@ -272,10 +272,10 @@ class SmartMirror(tk.Tk):
                         logging.info(conversation)
 
                 except sr.UnknownValueError:
-                    logging.error("Sorry, I couldn't understand the audio.")
+                    logging.error("Unable understand the audio.")
 
                 except sr.RequestError as e:
-                    logging.error("Sorry, an error occurred. {0}".format(e))
+                    logging.error("An error occurred. {0}".format(e))
 
     def update_weather(self) -> None:
         """
