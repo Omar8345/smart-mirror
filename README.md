@@ -14,6 +14,9 @@
 1. Setup Python virtual environment and install requirements:
 
 ```bash
+# Create new environment file from existing .env.sample
+$ cp .env.sample .env
+
 # Setup python virtual environment and activate it
 $ python -m venv venv
 $ source venv/bin/activate
