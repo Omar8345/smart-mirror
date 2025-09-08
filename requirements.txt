@@ -28,7 +28,7 @@ PyAudio==0.2.14
 pycountry==23.12.11
 pycparser==2.22
 pydub==0.25.1
-pymongo==3.12.3
+pymongo==4.6.3
 python-decouple==3.8
 python-dotenv==0.19.2
 ratelim==0.1.6
