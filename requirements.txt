@@ -1,7 +1,7 @@
 beautifulsoup4==4.9.3
 bs4==0.0.2
 cachetools==5.3.3
-certifi==2024.2.2
+certifi==2024.7.4
 cffi==1.16.0
 charset-normalizer
 click==8.1.7
