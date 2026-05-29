@@ -439,18 +439,35 @@ class SmartMirror(tk.Tk):
         Fetches the latest news using an API.
         """
 
+        headline = None
         if self.debug:
             headline = {
                 "title": "A kid in Alaska chews on gummy bears as his daily snack.",
                 "publisher": {"title": "CNN"},
             }
         else:
-            gnews = GNews()
-            country_name = self.get_country_name(self.country).replace(" ", "%20")
-            headline = gnews.get_news_by_location(country_name)[0]
+            try:
+                gnews = GNews()
+                country_name = self.get_country_name(self.country).replace(" ", "%20")
+                headlines = gnews.get_news_by_location(country_name)
+                if headlines:
+                    headline = headlines[0]
+            except (
+                requests.exceptions.RequestException,
+                ValueError,
+                TypeError,
+                KeyError,
+            ) as e:
+                logging.error(f"Unable to fetch news. Exception: {e}")
 
-        title = headline["title"]
-        publisher = headline["publisher"]["title"]
+        if not headline:
+            self.news_label.config(text="Unable to get latest news.")
+            self.news_label_publisher.config(text=" - Smart Mirror")
+            self.after(43200000, self.update_news)
+            return
+
+        title = headline.get("title", "Unable to get latest news.")
+        publisher = headline.get("publisher", {}).get("title", "Smart Mirror")
         title = title.removesuffix(" - " + publisher)
 
         self.news_label.config(text=title)
