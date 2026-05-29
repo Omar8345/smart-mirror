@@ -452,7 +452,12 @@ class SmartMirror(tk.Tk):
                 headlines = gnews.get_news_by_location(country_name)
                 if headlines:
                     headline = headlines[0]
-            except Exception as e:
+            except (
+                requests.exceptions.RequestException,
+                ValueError,
+                TypeError,
+                KeyError,
+            ) as e:
                 logging.error(f"Unable to fetch news. Exception: {e}")
 
         if not headline:
